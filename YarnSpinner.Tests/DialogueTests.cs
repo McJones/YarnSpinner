@@ -17,7 +17,7 @@ namespace YarnSpinner.Tests
         [Fact]
         public void TestNodeExists ()
         {
-            var path = Path.Combine(UnityDemoScriptsPath, "Sally.yarn");
+            var path = Path.Combine(SpaceDemoScriptsPath, "Sally.yarn");
 
             Compiler.CompileFile(path, out var program, out stringTable);
 
@@ -30,6 +30,25 @@ namespace YarnSpinner.Tests
 
             Assert.False (dialogue.NodeExists ("Sally"));
 
+        }
+
+        [Fact]
+        public void TestOptionDestinations() {
+            var path = Path.Combine(TestDataPath, "Options.yarn");
+
+            Compiler.CompileFile(path, out var program, out stringTable);
+
+            dialogue.SetProgram (program);
+
+            dialogue.optionsHandler = delegate (OptionSet optionSet) {
+                Assert.Equal(2, optionSet.Options.Length);
+                Assert.Equal("B", optionSet.Options[0].DestinationNode);
+                Assert.Equal("C", optionSet.Options[1].DestinationNode);
+            };
+
+            dialogue.SetNode("A");
+
+            dialogue.Continue();
         }
 
         [Fact]
@@ -46,7 +65,7 @@ namespace YarnSpinner.Tests
             // this means that there should be two diagnosis results
             context = new Yarn.Analysis.Context (typeof(Yarn.Analysis.UnusedVariableChecker));
 
-            var path = Path.Combine(TestDataPath, "AnalysisTest.yarn.txt");
+            var path = Path.Combine(TestDataPath, "AnalysisTest.yarn");
 
             Compiler.CompileFile(path, out var program, out stringTable);
 
@@ -60,10 +79,10 @@ namespace YarnSpinner.Tests
 
             context = new Yarn.Analysis.Context (typeof(Yarn.Analysis.UnusedVariableChecker));
 
-            string shipPath = Path.Combine(UnityDemoScriptsPath, "Ship.yarn");
+            string shipPath = Path.Combine(SpaceDemoScriptsPath, "Ship.yarn");
             Compiler.CompileFile(shipPath, out var shipProgram, out var shipStringTable);
 
-            string sallyPath = Path.Combine(UnityDemoScriptsPath, "Sally.yarn");
+            string sallyPath = Path.Combine(SpaceDemoScriptsPath, "Sally.yarn");
             Compiler.CompileFile(sallyPath, out var sallyProgram, out var sallyStringTable);
 
             stringTable = shipStringTable.Union(sallyStringTable).ToDictionary(k => k.Key, v => v.Value);            
@@ -83,7 +102,7 @@ namespace YarnSpinner.Tests
         public void TestDumpingCode()
         {
 
-            var path = Path.Combine(TestDataPath, "Example.yarn.txt");
+            var path = Path.Combine(TestDataPath, "Example.yarn");
 
             Compiler.CompileFile(path, out var program, out stringTable);
 
@@ -97,7 +116,7 @@ namespace YarnSpinner.Tests
         [Fact]
         public void TestMissingNode()
         {
-            var path = Path.Combine (TestDataPath, "TestCases", "Smileys.yarn.txt");
+            var path = Path.Combine (TestDataPath, "TestCases", "Smileys.yarn");
 
             Compiler.CompileFile(path, out var program, out stringTable);
             
@@ -105,14 +124,13 @@ namespace YarnSpinner.Tests
 
             errorsCauseFailures = false;
 
-            dialogue.SetNode("THIS NODE DOES NOT EXIST");
-            dialogue.Continue();
+            Assert.Throws<DialogueException>( () => dialogue.SetNode("THIS NODE DOES NOT EXIST"));            
         }
 
         [Fact]
         public void TestGettingCurrentNodeName()  {
 
-            string path = Path.Combine(UnityDemoScriptsPath, "Sally.yarn");
+            string path = Path.Combine(SpaceDemoScriptsPath, "Sally.yarn");
             Compiler.CompileFile(path, out var program, out stringTable);
             
             dialogue.SetProgram (program);
@@ -131,7 +149,7 @@ namespace YarnSpinner.Tests
         [Fact]
         public void TestGettingRawSource() {
 
-            var path = Path.Combine(TestDataPath, "Example.yarn.txt");
+            var path = Path.Combine(TestDataPath, "Example.yarn");
 
             Compiler.CompileFile(path, out var program, out stringTable);
             dialogue.SetProgram (program);
@@ -141,12 +159,12 @@ namespace YarnSpinner.Tests
 
             Assert.NotNull (source);
 
-            Assert.Equal ("A: HAHAHA", source);
+            Assert.Equal ("A: HAHAHA\n", source);
         }
 		[Fact]
 		public void TestGettingTags() {
 
-            var path = Path.Combine(TestDataPath, "Example.yarn.txt");
+            var path = Path.Combine(TestDataPath, "Example.yarn");
             Compiler.CompileFile(path, out var program, out stringTable);
 			dialogue.SetProgram (program);
 
